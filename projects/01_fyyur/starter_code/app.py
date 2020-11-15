@@ -178,7 +178,7 @@ def search_venues():
 
   search_term = request.form.get('search_term', '')
   venues = db.session.query(Venue).filter(Venue.name.ilike('%' + search_term + '%')).all()
-  data 2= []
+  data = []
 
   for venue in venues:
       num_upcoming_shows = 0
@@ -366,8 +366,17 @@ def delete_venue(venue_id):
 
 #  Artists
 #  ----------------------------------------------------------------
-# select id, name from artists;
+# display artists name and id from table
+@app.route('/artists')
+def artists():
+  #data wit the results of the query
+  data = Artist.query.with_entities(Artist.id, Artist.name).all()
+  return render_template('pages/artists.html', artists=data)
 
+@property
+def artist_list(self):
+  return { 'id': self.id, 'name': self.name }
+'''
 @app.route('/artists')
 def artists():
 
@@ -388,6 +397,7 @@ def artists():
 def artist_list(self):
   return { 'id': self.id, 'name': self.name }
 
+'''
 
 @app.route('/artists/search', methods=['POST'])
 def search_artists():
