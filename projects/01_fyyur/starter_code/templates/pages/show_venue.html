@@ -41,6 +41,10 @@
 			<i class="fas fa-moon"></i> Not currently seeking talent
 		</p>
 		{% endif %}
+		<form action="{{venue.id}}" method=POST class=delete-venue>
+			<input type=hidden value="{{venue_id}}" name=venue_to_delete />
+			<input type="submit" value="Delete Venue"/>
+		</form>
 	</div>
 	<div class="col-sm-6">
 		<img src="{{ venue.image_link }}" alt="Venue Image" />
@@ -74,6 +78,7 @@
 		{% endfor %}
 	</div>
 </section>
+<!-- button to delete venue -->
 
 {% endblock %}
 

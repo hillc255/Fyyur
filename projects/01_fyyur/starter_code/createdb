@@ -7,7 +7,7 @@ COMMENT ON DATABASE fyyur IS 'This is the fyyur database';
 CREATE TABLE venues (
   id SERIAL PRIMARY KEY,
   name VARCHAR(120) NOT NULL,
-  genres VARCHAR(500) NOT NULL,
+  genres TEXT [] NOT NULL,
   address VARCHAR(120) NOT NULL,
   city VARCHAR(120) NOT NULL,
   state VARCHAR(120) NOT NULL,
