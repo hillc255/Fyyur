@@ -55,7 +55,8 @@ class Venue(db.Model):
   artists = db.relationship('Artist', secondary='shows')
   shows = db.relationship('Show', backref=('venues'))
 
-    # TODO: implement any missing fields, as a database migration using Flask-Migrate
+    # TODO: implement any missing fields, as a database migration 
+    # using Flask-Migrate
     
 class Artist(db.Model):
     __tablename__ = 'artists'
@@ -89,13 +90,11 @@ class Show(db.Model):
     venue = db.relationship('Venue')
     artist = db.relationship('Artist')
 
-    #db.create_all()
-
 #----------------------------------------------------------------------------#
 # Filters.
 #----------------------------------------------------------------------------#
 
-# TypeError thown - decorator seems redundant with jinga below
+# TypeError thown - jinga seems dedundant if decorator exists
 @app.template_filter('datetime')
 def format_datetime(value, format='medium'):
   date = dateutil.parser.parse(value)
@@ -119,7 +118,7 @@ def index():
 #  ----------------------------------------------------------------
 #  Venues
 
- # TODO: replace with real venues data. -OK
+ # TODO: replace with real venues data.
 
 @app.route('/venues')
 def venues():
@@ -127,21 +126,17 @@ def venues():
   citystate_areas = db.session.query(Venue.city, Venue.state).group_by(Venue.city, Venue.state).all()
   data = []
 
-  #loop for each area venue by state and city
   for area in citystate_areas:
     area_venues = Venue.query.filter_by(state=area.state).filter_by(city=area.city).all()
     venue_data = []
 
-  #inner loop - count number of upcoming shows aggregated per venue
     for venue in area_venues:
       venue_data.append({
         "id": venue.id,
         "name": venue.name,
-       # not working?
          "num_upcoming_shows": len(db.session.query(Show).filter(Show.venue_id==1).filter(Show.start_time>datetime.now()).all())
      })
   
-    #display city, state and count of upcoming shows per venue
     data.append({
       "city": area.city,
       "state": area.state, 
@@ -152,18 +147,17 @@ def venues():
 
 #  ----------------------------------------------------------------
 
-# TODO: implement search on venues with partial string search. -OK
+# TODO: implement search on venues with partial string search.
 # Ensure it is case-insensitive.
 
 @app.route('/venues/search', methods=['POST'])
 def search_venues():
-  #provide search term for form
+
   search_term = request.form.get('search_term', '')
-  #query like - case insensive - search term and save results
   search_results = db.session.query(Venue).filter(Venue.name.ilike(f'%{search_term}%')).all()
-  #array for all search results
+
   data = []
-  #loop to display each result for id, name, num_upcoming_shows in all search_results
+  
   for result in search_results:
     data.append({
       "id": result.id,
@@ -171,7 +165,6 @@ def search_venues():
       "num_upcoming_shows": len(db.session.query(Show).filter(Show.venue_id == result.id).filter(Show.start_time > datetime.now()).all()),
     })
   
-  #final response with total count of results plus the data array
   response={
     "count": len(search_results),
     "data": data
@@ -179,34 +172,28 @@ def search_venues():
 
   return render_template('pages/search_venues.html', results=response, search_term=request.form.get('search_term', ''))  
 
-# TODO: replace with real venue data from the venues table, using venue_id -OK
+# TODO: replace with real venue data from the venues table, using venue_id
 # shows the venue page with the given venue_id
 
 @app.route('/venues/<int:venue_id>')
 def show_venue(venue_id):
 
-  #get venues results based on venue_id
   venue = Venue.query.get(venue_id)
 
-  #query to get shows by venue
   upcoming_show = db.session.query(Show).join(Artist).filter(Show.venue_id==venue_id).all()
   past_show = db.session.query(Show).join(Artist).filter(Show.venue_id==venue_id).all()
   
-  #define empty list for shows
   upcoming_shows = []
   past_shows = []
 
-  #loop for upcoming and past shows
   for show in upcoming_show:
     upcoming_shows.append({
-        #data as start_time
         'start_time': show.start_time.strftime('%Y-%m-%d %H:%M:%S'),
       }) 
     past_shows_count = len(upcoming_show) 
 
   for show in past_show:
     past_shows.append({
-        #data as start_time
         'start_time': show.start_time.strftime('%Y-%m-%d %H:%M:%S'),
       }) 
     past_shows_count = len(past_show) 
@@ -233,7 +220,7 @@ def show_venue(venue_id):
 #  ----------------------------------------------------------------
 #  Create Venue
 
-# TODO: insert form data as a new Venue record in the db, instead -OK
+# TODO: insert form data as a new Venue record in the db, instead
 # TODO: modify data to be the data object returned from db insertion
 # on successful db insert, flash success
 # TODO: on unsuccessful db insert, flash an error instead.
@@ -243,12 +230,10 @@ def create_venue_form():
   form = VenueForm()
   return render_template('forms/new_venue.html', form=form)
 
-#create new venue with form
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
-    #boolean if there is a submission problem
+
   error = False
-  #try to insert venues data
   try: 
     name = request.form['name']
     city = request.form['city']
@@ -257,15 +242,13 @@ def create_venue_submission():
     phone = request.form['phone']
     genres = request.form.getlist('genres'),
     facebook_link = request.form['facebook_link']
-    #venues params from model
+    
     venue = Venue(name=name, city=city, state=state, address=address, phone=phone, genres=genres, facebook_link=facebook_link)
-    #add data to database
+    
     db.session.add(venue)
-    #commit data
     db.session.commit()
   except: 
     error = True
-    #print error
     print(sys.exc_info())
     db.session.rollback()
   finally: 
@@ -276,20 +259,19 @@ def create_venue_submission():
     flash('Venue ' + request.form['name'] + ' was successfully listed!')
   return render_template('pages/home.html')
 
-# TODO: Complete this endpoint for taking a venue_id, and using -OK
+# TODO: Complete this endpoint for taking a venue_id, and using
 # SQLAlchemy ORM to delete a record. 
 # Handle cases where the session commit could fail.
 
 @app.route('/venues/<venue_id>', methods=['POST'])
 def delete_venue(venue_id):
 
-  #try to delete venue and commit change
   error = False
   try:
     venue = Venue.query.get(venue_id)
     db.session.delete(venue)
     db.session.commit()
-  #if fail rollback
+
   except:
     error = True
     print(sys.exc_info())
@@ -306,13 +288,12 @@ def delete_venue(venue_id):
 #  ----------------------------------------------------------------
 #  Artists
 
-# TODO: implement search on artists with partial string search. -OK
+# TODO: implement search on artists with partial string search.
 # Ensure it is case-insensitive.
 
-# display artists name and id from table
 @app.route('/artists')
 def artists():
-  #data with the results of the query
+
   data = Artist.query.with_entities(Artist.id, Artist.name).all()
   return render_template('pages/artists.html', artists=data)
 
@@ -322,13 +303,12 @@ def artist_list(self):
 
 @app.route('/artists/search', methods=['POST'])
 def search_artists():
-  #provide search term for form
+
   search_term = request.form.get('search_term', '')
-  #query like term and save results
   search_results = db.session.query(Artist).filter(Artist.name.ilike(f'%{search_term}%')).all()
-  #array for all search results
+  
   data = []
-  #loop to display each result for id, name, num_upcoming_shows in all search_results
+  
   for result in search_results:
     data.append({
       "id": result.id,
@@ -336,7 +316,6 @@ def search_artists():
       "num_upcoming_shows": len(db.session.query(Show).filter(Show.artist_id == result.id).filter(Show.start_time > datetime.now()).all()),
     })
   
-  #final response with total count of results plus the data array
   response={
     "count": len(search_results),
     "data": data
@@ -351,6 +330,7 @@ def search_artists():
 def show_artist(artist_id):
 
   global data
+
   artist = Artist.query.get(artist_id)
 
   #query to get shows by venue
@@ -364,14 +344,12 @@ def show_artist(artist_id):
   #loop for upcoming and past shows
   for show in upcoming_show:
     upcoming_shows.append({
-        #data as start_time
         'start_time': show.start_time.strftime('%Y-%m-%d %H:%M:%S'),
       }) 
     past_shows_count = len(upcoming_show) 
 
   for show in past_show:
     past_shows.append({
-        #data as start_time
         'start_time': show.start_time.strftime('%Y-%m-%d %H:%M:%S'),
       }) 
     past_shows_count = len(past_show) 
@@ -394,87 +372,8 @@ def show_artist(artist_id):
   
   return render_template('pages/show_artist.html', artist=data) 
 
-'''
-@app.route('/artists/<int:artist_id>')
-def show_artist(artist_id):
-
-  data1={
-    "id": 4,
-    "name": "Guns N Petals",
-    "genres": ["Rock n Roll"],
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "326-123-5000",
-    "website": "https://www.gunsnpetalsband.com",
-    "facebook_link": "https://www.facebook.com/GunsNPetals",
-    "seeking_venue": True,
-    "seeking_description": "Looking for shows to perform at in the San Francisco Bay Area!",
-    "image_link": "https://images.unsplash.com/photo-1549213783-8284d0336c4f?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=300&q=80",
-    "past_shows": [{
-      "venue_id": 1,
-      "venue_name": "The Musical Hop",
-      "venue_image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60",
-      "start_time": "2019-05-21T21:30:00.000Z"
-    }],
-    "upcoming_shows": [],
-    "past_shows_count": 1,
-    "upcoming_shows_count": 0,
-  }
-  data2={
-    "id": 5,
-    "name": "Matt Quevedo",
-    "genres": ["Jazz"],
-    "city": "New York",
-    "state": "NY",
-    "phone": "300-400-5000",
-    "facebook_link": "https://www.facebook.com/mattquevedo923251523",
-    "seeking_venue": False,
-    "image_link": "https://images.unsplash.com/photo-1495223153807-b916f75de8c5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=334&q=80",
-    "past_shows": [{
-      "venue_id": 3,
-      "venue_name": "Park Square Live Music & Coffee",
-      "venue_image_link": "https://images.unsplash.com/photo-1485686531765-ba63b07845a7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=747&q=80",
-      "start_time": "2019-06-15T23:00:00.000Z"
-    }],
-    "upcoming_shows": [],
-    "past_shows_count": 1,
-    "upcoming_shows_count": 0,
-  }
-  data3={
-    "id": 6,
-    "name": "The Wild Sax Band",
-    "genres": ["Jazz", "Classical"],
-    "city": "San Francisco",
-    "state": "CA",
-    "phone": "432-325-5432",
-    "seeking_venue": False,
-    "image_link": "https://images.unsplash.com/photo-1558369981-f9ca78462e61?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=794&q=80",
-    "past_shows": [],
-    "upcoming_shows": [{
-      "venue_id": 3,
-      "venue_name": "Park Square Live Music & Coffee",
-      "venue_image_link": "https://images.unsplash.com/photo-1485686531765-ba63b07845a7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=747&q=80",
-      "start_time": "2035-04-01T20:00:00.000Z"2
-    }, {
-      "venue_id": 3,
-      "venue_name": "Park Square Live Music & Coffee",
-      "venue_image_link": "https://images.unsplash.com/photo-1485686531765-ba63b07845a7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=747&q=80",
-      "start_time": "2035-04-08T20:00:00.000Z"
-    }, {
-      "venue_id": 3,
-      "venue_name": "Park Square Live Music & Coffee",
-      "venue_image_link": "https://images.unsplash.com/photo-1485686531765-ba63b07845a7?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=747&q=80",
-      "start_time": "2035-04-15T20:00:00.000Z"
-    }],
-    "past_shows_count": 0,
-    "upcoming_shows_count": 3,
-  }
-  data = list(filter(lambda d: d['id'] == artist_id, [data1, data2, data3]))[0]
-  return render_template('pages/show_artist.html', artist=data)
-'''
-
 #  ----------------------------------------------------------------
-#  Update
+#  Update (This is not required?)
 
 # TODO: populate form with fields from artist with ID <artist_id>
 
@@ -520,7 +419,7 @@ def edit_venue(venue_id):
     "phone": "123-123-1234",
     "website": "https://www.themusicalhop.com",
     "facebook_link": "https://www.facebook.com/TheMusicalHop",
-    "seeking_talen8t": True,
+    "seeking_talent": True,
     "seeking_description": "We are on the lookout for a local artist to play every two weeks. Please call us.",
     "image_link": "https://images.unsplash.com/photo-1543900694-133f37abaaa5?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=400&q=60"
   }
@@ -543,17 +442,15 @@ def create_artist_form():
   form = ArtistForm()
   return render_template('forms/new_artist.html', form=form)
 
-# TODO: insert form data as a new Venue record in the db, instead -OK
+# TODO: insert form data as a new Venue record in the db, instead
 # TODO: modify data to be the data object returned from db insertion
 # on successful db insert, flash success
 # TODO: on unsuccessful db insert, flash an error instead.
 
-#create new artist with form
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
-  #boolean if there is a submission problem
+
   error = False
-  #try to inset artist data
   try: 
     name = request.form['name']
     city = request.form['city']
@@ -561,15 +458,13 @@ def create_artist_submission():
     phone = request.form['phone']
     genres = request.form.getlist('genres'),
     facebook_link = request.form['facebook_link']
-    #artist params from model
+    
     artist = Artist(name=name, city=city, state=state, phone=phone, genres=genres, facebook_link=facebook_link)
-    #add data to database
+    
     db.session.add(artist)
-    #commit data
     db.session.commit()
   except: 
     error = True
-    #print error
     print(sys.exc_info())
     db.session.rollback()
   finally:
@@ -584,16 +479,14 @@ def create_artist_submission():
 #  Shows
 
 # displays list of shows at /shows
-# TODO: replace with real venues data. -OK
+# TODO: replace with real venues data.
 # num_shows should be aggregated based on number of upcoming shows per venue.
 
 @app.route('/shows')
 def shows():
 
-  #query to join show with artist and venue
   shows_query = db.session.query(Show).join(Artist).join(Venue).all()
 
-  #display both venue and artist show data
   data = []
   for show in shows_query: 
     data.append({
@@ -614,28 +507,27 @@ def create_shows():
   return render_template('forms/new_show.html', form=form)
 
 # called to create new shows in the db, upon submitting new show listing form
-# TODO: insert form data as a new Show record in the db, instead -OK
+# TODO: insert form data as a new Show record in the db, instead
 # on successful db insert, flash success
 # TODO: on unsuccessful db insert, flash an error instead.
 #create new show with form
 
 @app.route('/shows/create', methods=['POST'])
 def create_show_submission():
+  
   error = False
-  #try to insert show data
+
   try: 
     artist_id = request.form['artist_id']
     venue_id = request.form['venue_id']
     start_time = request.form['start_time']
-    #show params from model
+
     shows = Show(artist_id=artist_id, venue_id=venue_id, start_time=start_time)
-    #add data to database
+    
     db.session.add(shows)
-    #commit data
     db.session.commit()
   except: 
     error = True
-    #print error
     print(sys.exc_info())
     db.session.rollback()
   finally: 

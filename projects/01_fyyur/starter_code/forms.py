@@ -109,7 +109,7 @@ class VenueForm(Form):
     )
     phone = StringField(
         #'phone'
-        'phone', validators=[DataRequired(), Regexp("^[0-9]*$", message="Insert digits only please.")]
+        'phone', validators=[DataRequired(), Regexp("^[2-9]\d{2}-\d{3}-\d{4}$", message="Insert digits in the format 123-456-7890 please.")]
     )
     image_link = StringField(
         'image_link'
