@@ -4,6 +4,21 @@ CREATE DATABASE fyyur WITH ENCODING 'UTF8' LC_COLLATE='English_United States.125
 COMMENT ON DATABASE fyyur IS 'This is the fyyur database';
 
 
+CREATE TABLE artists (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(120) NOT NULL,
+  genres VARCHAR(500) NOT NULL,
+  city VARCHAR(120) NOT NULL,
+  state VARCHAR(2) NOT NULL,
+  phone VARCHAR(120)  NOT NULL,
+  website VARCHAR(500),
+  facebook_link VARCHAR(120),
+  seeking_venue BOOLEAN DEFAULT True,
+  seeking_description VARCHAR(120),
+  image_link VARCHAR(500)
+);
+
+
 CREATE TABLE venues (
   id SERIAL PRIMARY KEY,
   name VARCHAR(120) NOT NULL,
