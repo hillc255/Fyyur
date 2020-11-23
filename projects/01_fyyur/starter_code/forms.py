@@ -1,9 +1,9 @@
 from datetime import datetime
 from flask_wtf import Form
-from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField
-from wtforms.validators import DataRequired, AnyOf, URL, ValidationError, Regexp
-#help with formatting phone number
+from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField, ValidationError
+from wtforms.validators import ValidationError, DataRequired, AnyOf, URL, Regexp
 import re
+
 
 genres_choices = [
     ('Alternative', 'Alternative'),
@@ -80,12 +80,15 @@ state_choices = [
     ('WY', 'WY'),
 ]
 
+
 class ShowForm(Form):
     artist_id = StringField(
-        'artist_id'
+        'artist_id',
+        validators=[DataRequired()]
     )
     venue_id = StringField(
-        'venue_id'
+        'venue_id',
+        validators=[DataRequired()]
     )
     start_time = DateTimeField(
         'start_time',
@@ -108,19 +111,18 @@ class VenueForm(Form):
         'address', validators=[DataRequired()]
     )
     phone = StringField(
-        #'phone'
-        'phone', validators=[DataRequired(), Regexp("^[2-9]\d{2}-\d{3}-\d{4}$", message="Insert digits in the format 123-456-7890 please.")]
+        'phone', validators=[DataRequired(), Regexp(r'^[2-9]\d{2}-\d{3}-\d{4}$', message=': Invalid phone number.')]
     )
     image_link = StringField(
         'image_link'
     )
     genres = SelectMultipleField(
-        # TODO implement enum restriction - implemented already?
+        # TODO implement enum restriction
         'genres', validators=[DataRequired()],       
         choices=genres_choices
     )
     facebook_link = StringField(
-        'facebook_link', validators=[URL()]
+        'facebook_link', validators=[DataRequired(), URL(message=': Invalid URL.')]
     )
 
 class ArtistForm(Form):
@@ -135,9 +137,8 @@ class ArtistForm(Form):
         choices=state_choices
     )
     phone = StringField(
-        # TODO implement validation logic for state
-        #'phone'
-        'phone', validators=[DataRequired(), Regexp("^[0-9]*$", message="Insert digits only please.")]
+        # TODO implement validation logic
+        'phone', validators=[DataRequired(), Regexp(r'^[2-9]\d{2}-\d{3}-\d{4}$', message=': Invalid phone number.')]
     )
     image_link = StringField(
         'image_link'
@@ -149,7 +150,7 @@ class ArtistForm(Form):
     )
     facebook_link = StringField(
         # TODO implement enum restriction
-        'facebook_link', validators=[URL()]
+        'facebook_link', validators=[DataRequired(), URL(message=': Invalid URL.')]
     )
 
 # TODO IMPLEMENT NEW ARTIST FORM AND NEW SHOW FORM

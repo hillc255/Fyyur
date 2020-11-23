@@ -41,6 +41,7 @@
 			<i class="fas fa-moon"></i> Not currently seeking talent
 		</p>
 		{% endif %}
+		<!-- button to delete venue -->
 		<form action="{{venue.id}}" method=POST class=delete-venue>
 			<input type=hidden value="{{venue_id}}" name=venue_to_delete />
 			<input type="submit" value="Delete Venue"/>
@@ -78,7 +79,5 @@
 		{% endfor %}
 	</div>
 </section>
-<!-- button to delete venue -->
-
 {% endblock %}
 

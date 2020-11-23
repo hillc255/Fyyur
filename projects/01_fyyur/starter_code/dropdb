@@ -1,3 +1,6 @@
+drop table if exists shows cascade;
 drop table if exists venues cascade;
 drop table if exists artists cascade;
-drop table if exists shows cascade;
+drop table alembic_version;
+
+# drop database if exists fyyur;

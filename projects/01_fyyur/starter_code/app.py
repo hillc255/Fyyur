@@ -18,6 +18,7 @@ from flask_wtf import Form
 from sqlalchemy import Column, Date, ForeignKey, Integer, String, func
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import text
+from sqlalchemy.dialects import postgresql as pg
 
 from forms import *
 
@@ -41,12 +42,12 @@ class Venue(db.Model):
   __tablename__ = 'venues'
    
   id = db.Column(db.Integer, primary_key=True)
-  name = db.Column(db.String)
-  genres = db.Column(db.ARRAY(db.Text()))
-  address = db.Column(db.String(120))
-  city = db.Column(db.String(120))
-  state = db.Column(db.String(120))
-  phone = db.Column(db.String(120))
+  name = db.Column(db.String(120), nullable=False)
+  genres = db.Column(pg.ARRAY(db.String, dimensions=1), nullable=False)
+  address = db.Column(db.String(120), nullable=False)
+  city = db.Column(db.String(120), nullable=False)
+  state = db.Column(db.String(120), nullable=False)
+  phone = db.Column(db.String(120), nullable=False)
   website = db.Column(db.String(500))
   facebook_link = db.Column(db.String(120))
   seeking_talent = db.Column(db.Boolean,default=True)
@@ -59,36 +60,36 @@ class Venue(db.Model):
     # using Flask-Migrate
     
 class Artist(db.Model):
-    __tablename__ = 'artists'
+  __tablename__ = 'artists'
     
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(120))
-    genres = db.Column(db.ARRAY(db.Text()))
-    city = db.Column(db.String(120))
-    state = db.Column(db.String(120))
-    phone = db.Column(db.String(120))
-    facebook_link = db.Column(db.String(500))
-    website = db.Column(db.String(500))
-    seeking_venue = db.Column(db.Boolean,default=True)
-    seeking_description = db.Column(db.String(120))
-    image_link = db.Column(db.String(500))
-    venues = db.relationship('Venue', secondary='shows', cascade='all', lazy='dynamic')
-    shows = db.relationship('Show', backref=('artists'))
+  id = db.Column(db.Integer, primary_key=True)
+  name = db.Column(db.String(120), nullable=False)
+  genres = db.Column(pg.ARRAY(db.String, dimensions=1), nullable=False)
+  city = db.Column(db.String(120), nullable=False)
+  state = db.Column(db.String(120), nullable=False)
+  phone = db.Column(db.String(120), nullable=False)
+  facebook_link = db.Column(db.String(500))
+  website = db.Column(db.String(500))
+  seeking_venue = db.Column(db.Boolean,default=True)
+  seeking_description = db.Column(db.String(120))
+  image_link = db.Column(db.String(500))
+  venues = db.relationship('Venue', secondary='shows', cascade='all', lazy='dynamic')
+  shows = db.relationship('Show', backref=('artists'))
 
 # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
-# TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
+# TODO Implement Show and Artist models, and complete all model...database migration.
 
 class Show(db.Model):
-    __tablename__ = 'shows'
+  __tablename__ = 'shows'
     
-    id = db.Column(db.Integer, primary_key=True)
-    venue_id = db.Column(db.Integer, ForeignKey('venues.id'),  nullable=False)
-    artist_id = db.Column(db.Integer, ForeignKey('artists.id'), nullable=False)
-    start_time = db.Column(db.DateTime, nullable=False)
-    upcoming_shows = db.Column(db.Boolean,default=True)
-    venue = db.relationship('Venue')
-    artist = db.relationship('Artist')
+  id = db.Column(db.Integer, primary_key=True)
+  venue_id = db.Column(db.Integer, ForeignKey('venues.id'),  nullable=False)
+  artist_id = db.Column(db.Integer, ForeignKey('artists.id'), nullable=False)
+  start_time = db.Column(db.DateTime, nullable=False)
+  upcoming_shows = db.Column(db.Boolean,default=True)
+  venue = db.relationship('Venue')
+  artist = db.relationship('Artist')
 
 #----------------------------------------------------------------------------#
 # Filters.
@@ -233,30 +234,28 @@ def create_venue_form():
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
 
-  error = False
-  try: 
-    name = request.form['name']
-    city = request.form['city']
-    state = request.form['state']
-    address = request.form['address']
-    phone = request.form['phone']
-    genres = request.form.getlist('genres'),
-    facebook_link = request.form['facebook_link']
-    
-    venue = Venue(name=name, city=city, state=state, address=address, phone=phone, genres=genres, facebook_link=facebook_link)
-    
-    db.session.add(venue)
-    db.session.commit()
-  except: 
-    error = True
-    print(sys.exc_info())
-    db.session.rollback()
-  finally: 
-    db.session.close()
-  if error: 
-    flash('An error occurred. Venue ' + request.form['name']+ ' could not be listed.')
-  if not error: 
-    flash('Venue ' + request.form['name'] + ' was successfully listed!')
+  form = VenueForm(request.form)
+  if form.validate_on_submit():
+    try:
+      venue = Venue()
+      form.populate_obj(venue)
+      db.session.add(venue)
+      db.session.commit()
+      flash('Venue ' + request.form['name'] + ' was successfully listed!')
+
+    except ValueError as e:
+      print(sys.exc_info())
+      db.session.rollback()
+      flash('An error occurred in ' + form.name + '. Error: ' + str(e))
+    finally:
+      db.session.close()
+
+  else:
+    message = []
+    for field, errors in form.errors.items():
+      message.append(field + ':, '.join(errors))
+    flash(f'Errors: {message}')
+
   return render_template('pages/home.html')
 
 # TODO: Complete this endpoint for taking a venue_id, and using
@@ -337,7 +336,7 @@ def show_artist(artist_id):
   upcoming_show = db.session.query(Show).join(Venue).filter(Show.artist_id==artist_id).all()
   past_show = db.session.query(Show).join(Venue).filter(Show.artist_id==artist_id).all()
 
-#define empty list for shows
+  #define empty list for shows
   upcoming_shows = []
   past_shows = []
 
@@ -354,7 +353,7 @@ def show_artist(artist_id):
       }) 
     past_shows_count = len(past_show) 
   
-    data = {  
+  data = {  
     "name": artist.name,
     "id": artist.id,
     "genres": artist.genres,
@@ -450,29 +449,28 @@ def create_artist_form():
 @app.route('/artists/create', methods=['POST'])
 def create_artist_submission():
 
-  error = False
-  try: 
-    name = request.form['name']
-    city = request.form['city']
-    state = request.form['state']
-    phone = request.form['phone']
-    genres = request.form.getlist('genres'),
-    facebook_link = request.form['facebook_link']
-    
-    artist = Artist(name=name, city=city, state=state, phone=phone, genres=genres, facebook_link=facebook_link)
-    
-    db.session.add(artist)
-    db.session.commit()
-  except: 
-    error = True
-    print(sys.exc_info())
-    db.session.rollback()
-  finally:
-    db.session.close()
-  if error: 
-    flash('An error occurred. Artist ' + request.form['name']+ ' could not be listed.')
-  if not error: 
-    flash('Artist ' + request.form['name'] + ' was successfully listed!')
+  form = ArtistForm(request.form)
+  if form.validate_on_submit():
+    try:
+      artist = Artist()
+      form.populate_obj(artist)
+      db.session.add(artist)
+      db.session.commit()
+      flash('Artist ' + request.form['name'] + ' was successfully listed!')
+
+    except ValueError as e:
+      print(sys.exc_info())
+      db.session.rollback()
+      flash('An error occurred in ' + form.name + '. Error: ' + str(e))
+    finally:
+      db.session.close()
+
+  else:
+    message = []
+    for field, errors in form.errors.items():
+      message.append(field + ':, '.join(errors))
+    flash(f'Errors: {message}')
+
   return render_template('pages/home.html')
 
 #  ----------------------------------------------------------------

@@ -1,11 +1,12 @@
-#create db
+#create db and test tables
+
 CREATE DATABASE fyyur WITH ENCODING 'UTF8' LC_COLLATE='English_United States.1252' LC_CTYPE='English_United States.1252';
 
 COMMENT ON DATABASE fyyur IS 'This is the fyyur database';
 
 
 CREATE TABLE artists (
-  id SERIAL PRIMARY KEY,
+  id SERIAL NOT NULL,
   name VARCHAR(120) NOT NULL,
   genres VARCHAR(500) NOT NULL,
   city VARCHAR(120) NOT NULL,
@@ -15,12 +16,13 @@ CREATE TABLE artists (
   facebook_link VARCHAR(120),
   seeking_venue BOOLEAN DEFAULT True,
   seeking_description VARCHAR(120),
-  image_link VARCHAR(500)
+  image_link VARCHAR(500),
+  PRIMARY KEY (id)
 );
 
 
 CREATE TABLE venues (
-  id SERIAL PRIMARY KEY,
+  id SERIAL NOT NULL,
   name VARCHAR(120) NOT NULL,
   genres TEXT [] NOT NULL,
   address VARCHAR(120) NOT NULL,
@@ -31,13 +33,14 @@ CREATE TABLE venues (
   facebook_link VARCHAR(120),
   seeking_talent BOOLEAN DEFAULT True,
   seeking_description VARCHAR(120),
-  image_link VARCHAR(500)
+  image_link VARCHAR(500),
+  PRIMARY KEY (id)
 );
 
 CREATE TABLE shows (
-  id SERIAL,
-  venue_id INTEGER,
-  artist_id INTEGER,
+  id SERIAL NOT NULL,
+  venue_id INTEGER NOT NULL,
+  artist_id INTEGER NOT NULL,
   upcoming_shows BOOLEAN DEFAULT True,
   start_time TIMESTAMP DEFAULT CURRENT_DATE,
   PRIMARY KEY (id, venue_id, artist_id)
@@ -45,5 +48,4 @@ CREATE TABLE shows (
 
 
 ALTER TABLE shows ADD CONSTRAINT venue_id FOREIGN KEY (venue_id) REFERENCES venues (id) MATCH FULL;
-
 ALTER TABLE shows ADD CONSTRAINT artist_id FOREIGN KEY (artist_id) REFERENCES artists (id) MATCH FULL;
