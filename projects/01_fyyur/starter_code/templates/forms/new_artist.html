@@ -33,8 +33,8 @@
           {{ form.facebook_link(class_ = 'form-control', placeholder='http://', autofocus = true) }}
       </div>
       <div class="form-group">
-        <label for="website_link">Website Link</label>
-        {{ form.website_link(class_ = 'form-control', placeholder='http://', autofocus = true) }}
+        <label for="website">Website</label>
+        {{ form.website(class_ = 'form-control', placeholder='http://', autofocus = true) }}
       </div>
       <div class="form-group">
         <label for="image_link">Image Link</label>
@@ -42,12 +42,9 @@
       </div>
 
       <div class="form-group">
-        <label for="seeking_venue">Seeking Venue&nbsp;&nbsp;&nbsp;&nbsp;<input type = "checkbox" name="seeking_venue" value="True" checked/></label>
-      </div>
-
-      <div class="form-group">
-        <label for="seeking_description">Seeking Description</label>
-        {{ form.seeking_description(class_ = 'form-control', autofocus = true) }}
+      <input type = "checkbox" name="seeking_venue" default=True autofocus = true checked/><label for="seeking_venue">&nbsp;&nbsp;&nbsp;&nbsp;Seeking Venue</label>
+        <!-- {{ form.seeking_venue(class_ = 'form-check-input') }} -->
+        <label for="seeking-venue">Seeking Venue</label> 
       </div>
 
       <input type="submit" value="Create Artist" class="btn btn-primary btn-lg btn-block">
