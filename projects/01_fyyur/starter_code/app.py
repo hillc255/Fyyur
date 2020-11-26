@@ -362,7 +362,7 @@ def show_artist(artist_id):
     "phone": artist.phone,
     "website": artist.website,
     "facebook_link": artist.facebook_link,
-    "seeking_talent": artist.seeking_venue,
+    "seeking_venue": artist.seeking_venue,
     "seeking_description": artist.seeking_description,
     "image_link": artist.image_link,
     "upcoming_shows": upcoming_shows,

@@ -1,15 +1,9 @@
 from datetime import datetime
 from flask_wtf import Form
+from flask import request
 from wtforms import BooleanField, StringField, SelectField, SelectMultipleField, DateTimeField, ValidationError
 from wtforms.validators import ValidationError, DataRequired, AnyOf, URL, Regexp, Optional
 import re
-
-def seeking(Form, seeking_venue):
-  if seeking_venue == 'seeking_venue':
-        seeking_venue = True
-  else:
-        seeking_venue = False
-  return seeking_venue
 
 
 genres_choices = [
@@ -163,7 +157,7 @@ class ArtistForm(Form):
         'website', validators=[Optional(), URL(message=': Invalid URL.')]
     )
     seeking_venue = BooleanField(
-        'seeking_venue', validators=[DataRequired()]
+        'seeking_venue'
     )
 
 
