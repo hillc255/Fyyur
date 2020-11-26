@@ -1,9 +1,8 @@
 from datetime import datetime
 from flask_wtf import Form
 from flask import request
-from wtforms import BooleanField, StringField, SelectField, SelectMultipleField, DateTimeField, ValidationError
-from wtforms.validators import ValidationError, DataRequired, AnyOf, URL, Regexp, Optional
-import re
+from wtforms import BooleanField, StringField, SelectField, SelectMultipleField, DateTimeField, ValidationError, validators as v
+from wtforms.validators import ValidationError, DataRequired, AnyOf, URL, Regexp, Optional, StopValidation
 
 
 genres_choices = [
@@ -25,6 +24,7 @@ genres_choices = [
     ('Reggae', 'Reggae'),
     ('Rock n Roll', 'Rock n Roll'),
     ('Soul', 'Soul'),
+    ('Swing', 'Swing'),
     ('Other', 'Other'),
 ]
 state_choices = [
@@ -112,7 +112,7 @@ class VenueForm(Form):
         'address', validators=[DataRequired()]
     )
     phone = StringField(
-        'phone', validators=[DataRequired(), Regexp(r'^[2-9]\d{2}-\d{3}-\d{4}$', message=': Invalid phone number.')]
+        'phone', validators=[DataRequired(), Regexp(r'^[1-9]\d{2}-\d{3}-\d{4}$', message=': Invalid phone number.')]
     )
     image_link = StringField(
         'image_link'
@@ -123,7 +123,19 @@ class VenueForm(Form):
         choices=genres_choices
     )
     facebook_link = StringField(
-        'facebook_link', validators=[DataRequired(), URL(message=': Invalid URL.')]
+        'facebook_link', validators=[Optional(), URL(message=': Invalid URL.')]
+    )
+    website = StringField(
+        'website', validators=[Optional(), URL(message=': Invalid URL.')]
+    )
+    image_link = StringField(
+        'image_link', validators=[DataRequired(), URL(message=': Invalid URL.')]
+    )
+    seeking_talent = BooleanField(
+        'seeking_talent'
+    )
+    seeking_description = StringField(
+        'seeking_description', validators=[Optional(strip_whitespace=True)]
     )
 
 class ArtistForm(Form):
@@ -139,7 +151,7 @@ class ArtistForm(Form):
     )
     phone = StringField(
         # TODO implement validation logic
-        'phone', validators=[DataRequired(), Regexp(r'^[2-9]\d{2}-\d{3}-\d{4}$', message=': Invalid phone number.')]
+        'phone', validators=[DataRequired(), Regexp(r'^[1-9]\d{2}-\d{3}-\d{4}$', message=': Invalid phone number.')]
     )
     image_link = StringField(
         'image_link', validators=[DataRequired(), URL(message=': Invalid URL.')]
@@ -158,6 +170,9 @@ class ArtistForm(Form):
     )
     seeking_venue = BooleanField(
         'seeking_venue'
+    )
+    seeking_description = StringField(
+        'seeking_description', validators=[Optional(strip_whitespace=True)]
     )
 
 

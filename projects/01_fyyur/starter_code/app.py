@@ -73,10 +73,14 @@ class Artist(db.Model):
   seeking_venue = db.Column(db.Boolean,default=True)
   seeking_description = db.Column(db.String(120))
   image_link = db.Column(db.String(500))
-  venues = db.relationship('Venue', secondary='shows', cascade='all', lazy='dynamic')
+  venues = db.relationship('Venue', secondary='shows', cascade='all', 
+
+lazy='dynamic')
   shows = db.relationship('Show', backref=('artists'))
 
-# TODO: implement any missing fields, as a database migration using Flask-Migrate
+# TODO: implement any missing fields, as a database migration using Flask-
+
+Migrate
 
 # TODO Implement Show and Artist models, and complete all model...database migration.
 
