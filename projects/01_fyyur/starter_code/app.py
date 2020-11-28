@@ -101,7 +101,8 @@ class Show(db.Model):
 
 # TypeError thown - jinga seems dedundant if decorator exists
 @app.template_filter('datetime')
-def format_datetime(value, format='medium'):
+def format_datetime(value, format):
+#def format_datetime(value, format='medium'):
   date = dateutil.parser.parse(value)
   if format == 'full':
       format="EEEE MMMM, d, y 'at' h:mma"
@@ -501,6 +502,32 @@ def shows():
     })
 
   return render_template('pages/shows.html', shows=data)
+
+
+@app.route('/shows/search', methods=['POST'])
+def search_shows():
+
+  search_term = request.form.get('search_term', '')
+  search_results = db.session.query(Show).join(Artist).join(Venue).filter(Show.start_time).ilike(f'%{search_term}%').all()
+ 
+  #search_results = db.session.query(Show).join(Artist).join(Venue).filter(Show.start_time.ilike(f'%{search_term}%')).all()
+
+  data = []
+  
+  for result in search_results:
+    data.append({
+      "venue_id": result.venue_id,
+      "venue_name": result.venue.name,
+      "artist_id": result.artist_id,
+      "artist_name": result.artist.name, 
+      "artist_image_link": result.artist.image_link,
+      "start_time": str(result.start_time)
+    })
+
+  response={
+    "data": data
+  }
+  return render_template('pages/search_shows.html', results=response, search_term=request.form.get('search_term', '')) 
 
 @app.route('/shows/create')
 def create_shows():
