@@ -9,16 +9,16 @@ from logging import FileHandler, Formatter
 
 import babel
 import dateutil.parser
-from flask import (Flask, Response, abort, flash, jsonify, redirect,
-                   render_template, request, url_for)
+from flask import Flask, Response, abort, flash, jsonify, redirect, render_template, request, url_for
 from flask_migrate import Migrate
 from flask_moment import Moment
 from flask_sqlalchemy import SQLAlchemy
 from flask_wtf import Form
-from sqlalchemy import Column, Date, ForeignKey, Integer, String, func
+from sqlalchemy import Column, Date, ForeignKey, Integer, String, func, cast
 from sqlalchemy.orm import relationship
-from sqlalchemy.sql import text
+from sqlalchemy.sql import text, func
 from sqlalchemy.dialects import postgresql as pg
+from datetime import date, datetime
 
 from forms import *
 
@@ -101,8 +101,7 @@ class Show(db.Model):
 
 # TypeError thown - jinga seems dedundant if decorator exists
 @app.template_filter('datetime')
-def format_datetime(value, format):
-#def format_datetime(value, format='medium'):
+def format_datetime(value, format='medium'):
   date = dateutil.parser.parse(value)
   if format == 'full':
       format="EEEE MMMM, d, y 'at' h:mma"
@@ -317,7 +316,7 @@ def search_artists():
     data.append({
       "id": result.id,
       "name": result.name,
-      "num_upcoming_shows": len(db.session.query(Show).filter(Show.artist_id == result.id).filter(Show.start_time > datetime.now()).all()),
+      "num_upcoming_shows": len(db.session.query(Show).filter(Show.artist_id == result.id).filter(Show.start_time > datetime.now()).all())
     })
   
   response={
@@ -503,30 +502,52 @@ def shows():
 
   return render_template('pages/shows.html', shows=data)
 
+def validate_term(search_term):
+
+  try:
+    datetime.strptime(search_term, '%Y-%m-%d')
+    return
+  except:
+    return -1
 
 @app.route('/shows/search', methods=['POST'])
 def search_shows():
 
-  search_term = request.form.get('search_term', '')
-  search_results = db.session.query(Show).join(Artist).join(Venue).filter(Show.start_time).ilike(f'%{search_term}%').all()
- 
-  #search_results = db.session.query(Show).join(Artist).join(Venue).filter(Show.start_time.ilike(f'%{search_term}%')).all()
+  search_term = request.form.get('search_term')
 
+  #check if search term is empty string
+  if search_term == '':
+    search_term_var = datetime.now()
+  #check if valid format
+  else:
+    v_term = validate_term(search_term)
+    if not v_term:
+      search_term_var = search_term
+    else:
+      search_term_var = datetime.now()
+      
+  #perform query with validated string or dummy date
+  search_results = db.session.query(Show).join(Artist).join(Venue).filter(cast(Show.start_time, Date) == cast(search_term_var, Date)).all()
+ 
   data = []
-  
+ 
   for result in search_results:
     data.append({
+      "id": result.id,
       "venue_id": result.venue_id,
       "venue_name": result.venue.name,
       "artist_id": result.artist_id,
       "artist_name": result.artist.name, 
       "artist_image_link": result.artist.image_link,
-      "start_time": str(result.start_time)
+      "start_time": str(result.start_time),
+      "num_upcoming_shows": len(db.session.query(Show).filter(Show.artist_id == result.id).filter(Show.start_time > datetime.now()).all())
     })
 
   response={
+    "count": len(search_results),
     "data": data
-  }
+    }
+
   return render_template('pages/search_shows.html', results=response, search_term=request.form.get('search_term', '')) 
 
 @app.route('/shows/create')

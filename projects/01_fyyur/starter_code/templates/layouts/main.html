@@ -76,7 +76,8 @@
               </form>
               {% endif %}
               {% if (request.endpoint == 'shows') or
-                (request.endpoint == 'search_shows') %}
+                (request.endpoint == 'search_shows') or
+                (request.endpoint == 'show_show') %}
               <form class="search" method="post" action="/shows/search">
                 <input class="form-control"
                   type="search"
