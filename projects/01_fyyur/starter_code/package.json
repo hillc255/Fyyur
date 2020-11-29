@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Fyyur\r -----",
   "main": "index.js",
+  "python.linting.pylintArgs": ["--load-plugins", "pylint_flask_sqlalchemy", "pylint_flask"]
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
